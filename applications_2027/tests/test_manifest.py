@@ -25,6 +25,12 @@ ALLOWED_OUTPUT_STATUSES = {"application_ready", "provisional"}
 
 
 class ManifestTests(unittest.TestCase):
+    def test_has_expected_applicant_metadata(self):
+        self.assertEqual(
+            MANIFEST["applicant"],
+            {"name": "Jianming Xing", "intake": "Fall 2027"},
+        )
+
     def test_has_exactly_25_unique_program_keys(self):
         keys = [program["key"] for program in PROGRAMS]
 
