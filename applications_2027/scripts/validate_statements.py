@@ -189,6 +189,16 @@ def normalize_text(text):
     )
 
 
+def own_program_errors(text, program):
+    """Require program-specific prose to name its manifest program."""
+    program_name = program.get("program")
+    if not isinstance(program_name, str) or not program_name.strip():
+        return ["program metadata does not contain a usable program name"]
+    if normalize_text(program_name) in normalize_text(text):
+        return []
+    return ["program-specific prose does not mention its program"]
+
+
 def _strip_pdf_layout_artifacts(text, program):
     """Remove exact EasierPS header lines and isolated trailing page numbers."""
     header_lines = {
@@ -388,6 +398,13 @@ def validate_program(program, root=None, require_pdfs=False):
         errors.extend(
             _content_issues(
                 program_key,
+                "own_program",
+                own_program_errors(plain_text["module"], program),
+            )
+        )
+        errors.extend(
+            _content_issues(
+                program_key,
                 "cross_school_contamination",
                 contamination_errors(long_form_body, program["school"]),
             )
@@ -466,6 +483,13 @@ def validate_program(program, root=None, require_pdfs=False):
                         errors.extend(
                             _content_issues(
                                 program_key,
+                                "derivative_own_program",
+                                own_program_errors(derivative_plain, program),
+                            )
+                        )
+                        errors.extend(
+                            _content_issues(
+                                program_key,
                                 "derivative_cross_school_contamination",
                                 contamination_errors(body, program["school"]),
                             )
@@ -525,12 +549,12 @@ def validate_program(program, root=None, require_pdfs=False):
                 )
             else:
                 extracted_body = _strip_pdf_layout_artifacts(result.stdout, program)
-                if normalize_text(body) not in normalize_text(extracted_body):
+                if normalize_text(body) != normalize_text(extracted_body):
                     errors.append(
                         ValidationIssue(
                             program_key,
                             "pdf_text_parity",
-                            "normalized PDF extraction does not contain canonical body",
+                            "normalized PDF extraction differs from canonical body",
                         )
                     )
 

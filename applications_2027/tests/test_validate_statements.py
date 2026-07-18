@@ -54,7 +54,11 @@ class ValidatorTests(unittest.TestCase):
             "real-robot " + "evidence " * 847,
             encoding="utf-8",
         )
-        module_path.write_text("CUHK fit.", encoding="utf-8")
+        canonical_program_name = program["program"].replace("&", r"\&")
+        module_path.write_text(
+            f"{program['university_abbr']} offers the {canonical_program_name}.",
+            encoding="utf-8",
+        )
         markdown_path = output_path(program, "markdown", root)
         markdown_path.parent.mkdir(parents=True, exist_ok=True)
         markdown_path.write_text(
@@ -274,6 +278,49 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("own_school", checks)
         self.assertIn("cross_school_contamination", checks)
 
+    def test_program_scan_requires_own_program_in_module(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base_path, module_path, markdown_path = self.write_valid_program(root)
+            module_path.write_text(
+                "CUHK offers a robotics curriculum that fits my goals.",
+                encoding="utf-8",
+            )
+            markdown_path.write_text(
+                compose_plain(base_path, module_path), encoding="utf-8"
+            )
+            errors = validate_program(self.program, root=root)
+
+        self.assertIn("own_program", {error.check for error in errors})
+
+    def test_program_scan_accepts_normalized_program_punctuation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                key="ntu-computer-control-automation",
+                school="ntu",
+                university="Nanyang Technological University, Singapore",
+                university_abbr="NTU",
+                program="MSc in Computer Control & Automation",
+                program_module="content/programs/ntu/computer_control_automation.tex",
+            )
+            _, module_path, markdown_path = self.write_valid_program(root, program)
+            module_path.write_text(
+                r"NTU's M.Sc. in Computer-Control \& Automation fits my goals.",
+                encoding="utf-8",
+            )
+            markdown_path.write_text(
+                compose_plain(
+                    root / "content" / "base" / "robotics_embodied_ai.tex",
+                    module_path,
+                ),
+                encoding="utf-8",
+            )
+            errors = validate_program(program, root=root)
+
+        self.assertNotIn("own_program", {error.check for error in errors})
+
     def test_program_scan_enforces_body_length(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -312,15 +359,20 @@ class ValidatorTests(unittest.TestCase):
             base_path, module_path, markdown_path = self.write_valid_program(
                 root, program
             )
-            module_path.write_text("NTU long-form fit.", encoding="utf-8")
+            module_path.write_text(
+                "NTU's MSc in Robotics and Intelligent Systems is my long-form fit.",
+                encoding="utf-8",
+            )
             derivative_path = root / program["compressed_derivative"]
             derivative_path.parent.mkdir(parents=True)
             derivative_path.write_text(
-                "NTU derivative paragraph one.\n\nNTU derivative paragraph two.\n",
+                "NTU's MSc in Robotics and Intelligent Systems is my derivative "
+                "fit.\n\nNTU derivative paragraph two.\n",
                 encoding="utf-8",
             )
             markdown_path.write_text(
-                "NTU derivative paragraph one.\n\nNTU derivative paragraph two.\n",
+                "NTU's MSc in Robotics and Intelligent Systems is my derivative "
+                "fit.\n\nNTU derivative paragraph two.\n",
                 encoding="utf-8",
             )
             long_form_characters = len(compose_plain(base_path, module_path).strip())
@@ -402,6 +454,40 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("derivative_placeholders", checks)
         self.assertIn("derivative_own_school", checks)
         self.assertIn("derivative_cross_school_contamination", checks)
+
+    def test_program_scan_rejects_same_school_derivative_path_swap(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                key="ntu-computer-control-automation",
+                school="ntu",
+                university="Nanyang Technological University, Singapore",
+                university_abbr="NTU",
+                program="MSc in Computer Control & Automation",
+                program_module="content/programs/ntu/computer_control_automation.tex",
+                compressed_derivative=(
+                    "content/derivatives/ntu/robotics_intelligent_systems.tex"
+                ),
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            _, _, markdown_path = self.write_valid_program(root, program)
+            derivative_path = root / program["compressed_derivative"]
+            derivative_path.parent.mkdir(parents=True)
+            derivative_body = (
+                "NTU's MSc in Robotics and Intelligent Systems fits my goals.\n"
+            )
+            derivative_path.write_text(derivative_body, encoding="utf-8")
+            markdown_path.write_text(derivative_body, encoding="utf-8")
+            errors = validate_program(program, root=root)
+
+        self.assertIn(
+            "derivative_own_program", {error.check for error in errors}
+        )
 
     def test_program_scan_keeps_default_long_form_word_gate_for_derivative(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -500,6 +586,45 @@ class ValidatorTests(unittest.TestCase):
                 return_value=mock.Mock(stdout="CUHK evidence only"),
             ):
                 errors = validate_program(self.program, root=root, require_pdfs=True)
+        self.assertIn("pdf_text_parity", {error.check for error in errors})
+
+    def test_program_scan_rejects_pdf_with_duplicated_canonical_body(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base_path, module_path, _ = self.write_valid_program(root)
+            pdf_path = output_path(self.program, "pdf", root)
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"pdf")
+            body = compose_plain(base_path, module_path)
+            with mock.patch(
+                "scripts.validate_statements.subprocess.run",
+                return_value=mock.Mock(
+                    stdout=f"Personal Statement\n{body}\n{body}"
+                ),
+            ):
+                errors = validate_program(self.program, root=root, require_pdfs=True)
+
+        self.assertIn("pdf_text_parity", {error.check for error in errors})
+
+    def test_program_scan_rejects_pdf_with_appended_body_text(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base_path, module_path, _ = self.write_valid_program(root)
+            pdf_path = output_path(self.program, "pdf", root)
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"pdf")
+            body = compose_plain(base_path, module_path)
+            with mock.patch(
+                "scripts.validate_statements.subprocess.run",
+                return_value=mock.Mock(
+                    stdout=(
+                        f"Personal Statement\n{body}\n"
+                        "An unrelated appended paragraph."
+                    )
+                ),
+            ):
+                errors = validate_program(self.program, root=root, require_pdfs=True)
+
         self.assertIn("pdf_text_parity", {error.check for error in errors})
 
     def test_cli_repeatable_only_keeps_global_checks_and_requested_order(self):

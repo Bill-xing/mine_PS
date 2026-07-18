@@ -3,6 +3,8 @@ import unittest
 from collections import Counter
 from pathlib import Path
 
+from scripts.build_statements import tex_to_plain
+
 
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "config" / "programs.json"
 EASIER_PS_PATH = Path(__file__).resolve().parents[1] / "easier_ps.cls"
@@ -99,6 +101,23 @@ class ManifestTests(unittest.TestCase):
                 self.assertEqual(set(program), REQUIRED_FIELDS)
                 self.assertIn(program["output_status"], ALLOWED_OUTPUT_STATUSES)
 
+    def test_output_status_distribution_matches_current_verification(self):
+        self.assertEqual(
+            Counter(program["output_status"] for program in PROGRAMS),
+            Counter({"provisional": 17, "application_ready": 8}),
+        )
+
+    def test_ntu_ris_preserves_official_source_conflict_status(self):
+        ris = next(
+            program
+            for program in PROGRAMS
+            if program["key"] == "ntu-robotics-intelligent-systems"
+        )
+
+        self.assertEqual("January 2027", ris["academic_year"])
+        self.assertEqual("official_sources_conflict", ris["verification_status"])
+        self.assertEqual("provisional", ris["output_status"])
+
     def test_only_three_ntu_programs_declare_character_limited_derivatives(self):
         expected = {
             "ntu-robotics-intelligent-systems": (
@@ -123,7 +142,8 @@ class ManifestTests(unittest.TestCase):
                 derivative = program["compressed_derivative"]
                 if program["key"] in expected:
                     self.assertIsInstance(derivative, str)
-                    self.assertTrue((MANIFEST_PATH.parent.parent / derivative).is_file())
+                    derivative_path = MANIFEST_PATH.parent.parent / derivative
+                    self.assertTrue(derivative_path.is_file())
                     self.assertEqual(
                         {
                             "unit": "characters",
@@ -132,6 +152,13 @@ class ManifestTests(unittest.TestCase):
                         },
                         program["official_limit"],
                     )
+                    character_count = len(
+                        tex_to_plain(
+                            derivative_path.read_text(encoding="utf-8")
+                        ).strip()
+                    )
+                    self.assertGreaterEqual(character_count, 1850)
+                    self.assertLessEqual(character_count, 1950)
                 else:
                     self.assertIsNone(derivative)
 
