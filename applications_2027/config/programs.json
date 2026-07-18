@@ -15,7 +15,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cuhk-mechanical-automation-engineering",
@@ -28,7 +29,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cuhk-artificial-intelligence",
@@ -41,7 +43,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cuhk-computer-science",
@@ -54,7 +57,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_sources_conflict",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cuhk-information-engineering",
@@ -67,7 +71,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "hkust-robotics-embodied-ai",
@@ -80,7 +85,8 @@
       "academic_year": "Fall 2027",
       "verification_status": "official_announcement_only",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "hkust-artificial-intelligence",
@@ -93,7 +99,8 @@
       "academic_year": "2026/27",
       "verification_status": "official_sources_conflict",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "hkust-information-technology",
@@ -106,7 +113,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "hkust-big-data-technology",
@@ -119,7 +127,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "hkust-mechanical-engineering",
@@ -132,7 +141,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "polyu-intelligent-robotics-engineering",
@@ -145,7 +155,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_2027_28",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "polyu-agentic-ai-systems",
@@ -158,7 +169,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_2027_28",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "polyu-information-technology",
@@ -171,7 +183,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_2027_28",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "polyu-artificial-intelligence-big-data-computing",
@@ -184,7 +197,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_2027_28",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "polyu-smart-manufacturing",
@@ -197,7 +211,8 @@
       "academic_year": "2027/28",
       "verification_status": "official_2027_28",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cityu-artificial-intelligence",
@@ -210,7 +225,8 @@
       "academic_year": "2026/27",
       "verification_status": "official_sources_conflict",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cityu-computer-science",
@@ -223,7 +239,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cityu-computer-information-engineering",
@@ -236,7 +253,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "cityu-mechanical-engineering",
@@ -249,7 +267,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "nus-robotics",
@@ -262,7 +281,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "nus-data-science-machine-learning",
@@ -275,7 +295,8 @@
       "academic_year": "August 2027",
       "verification_status": "official_2027_intake",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "nus-mechanical-engineering",
@@ -288,7 +309,8 @@
       "academic_year": "2026/27",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": null,
+      "compressed_derivative": null
     },
     {
       "key": "ntu-robotics-intelligent-systems",
@@ -299,9 +321,14 @@
       "direction": "robotics_embodied_ai",
       "program_module": "content/programs/ntu/robotics_intelligent_systems.tex",
       "academic_year": "January 2027",
-      "verification_status": "latest_official_prior_cycle",
+      "verification_status": "official_sources_conflict",
       "output_status": "provisional",
-      "official_limit": null
+      "official_limit": {
+        "unit": "characters",
+        "max": 2000,
+        "includes_spaces": true
+      },
+      "compressed_derivative": "content/derivatives/ntu/robotics_intelligent_systems.tex"
     },
     {
       "key": "ntu-computer-control-automation",
@@ -314,7 +341,12 @@
       "academic_year": "August 2027",
       "verification_status": "official_2027_intake",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": {
+        "unit": "characters",
+        "max": 2000,
+        "includes_spaces": true
+      },
+      "compressed_derivative": "content/derivatives/ntu/computer_control_automation.tex"
     },
     {
       "key": "ntu-signal-processing-machine-learning",
@@ -327,7 +359,12 @@
       "academic_year": "August 2027",
       "verification_status": "official_2027_intake",
       "output_status": "application_ready",
-      "official_limit": null
+      "official_limit": {
+        "unit": "characters",
+        "max": 2000,
+        "includes_spaces": true
+      },
+      "compressed_derivative": "content/derivatives/ntu/signal_processing_machine_learning.tex"
     }
   ]
 }
