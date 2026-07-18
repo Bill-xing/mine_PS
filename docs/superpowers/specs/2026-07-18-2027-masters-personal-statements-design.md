@@ -52,7 +52,7 @@ The following facts must remain consistent across all versions:
 - The CR5 project uses a Dobot CR5, Orbbec Astra2 RGB-D camera, electric gripper, ROS2, HDF5 synchronization, LeRobot v2.0, OpenPI adaptation, and WebSocket policy serving.
 - Camera frame drops improved from 27.15% to the 2.57%-4.74% range. The range must not be rewritten as a single best-case result without context.
 - The stable CR5 deployment path used action chunks and blocking short-horizon ServoP execution after non-blocking execution produced unstable corrections from intermediate states.
-- The weld-seam HMI result is resume-backed as an improvement from 64% to 96.8%. It must be called segmentation accuracy unless a source establishes a more precise metric; it must not be relabeled as mIoU.
+- For the weld-seam HMI, technical figures control metric definitions when a summary or resume shorthand conflicts. The original U-Net recorded 81.19% mIoU and 0.64 seam-class IoU; the final 939-image configuration recorded 96.80% mIoU and 0.94 seam-class IoU. The shorthand 64% -> 96.8% is prohibited because it crosses metric types. Architecture, pretraining, and dataset size all changed across stages, so the results do not support a single-factor causal claim or controlled-ablation claim.
 - The Xbotics work was a community internship involving MotrixLab, Isaac Lab, MuJoCo heightfields, quadruped navigation, and reinforcement-learning environment migration.
 - TOEFL is currently 93. NTU MSc Artificial Intelligence, whose current requirement is 100, is excluded because the applicant does not plan to retake TOEFL.
 - Awards may be stated exactly as recorded in the final resumes. Additional claims about personal contribution or competition methodology require supporting material.

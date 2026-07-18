@@ -276,7 +276,7 @@ git commit -m "feat: scaffold 2027 statement portfolio"
 
 - [ ] Enter the CR5 facts: Dobot CR5, Orbbec Astra2 RGB-D camera, electric gripper, ROS2, HDF5 synchronization, LeRobot v2.0, OpenPI adaptation, WebSocket policy serving, frame-drop improvement from 27.15% to the 2.57%-4.74% range, and the decision to use action chunks with blocking short-horizon ServoP after unstable non-blocking execution.
 
-- [ ] Enter the weld-seam HMI facts: modified-DH kinematics, analytical forward/inverse kinematics, OpenGL digital twin, and segmentation accuracy improvement from 64% to 96.8%. Explicitly forbid relabeling the metric as mIoU.
+- [ ] Enter the weld-seam HMI facts: modified-DH kinematics, analytical forward/inverse kinematics, and the OpenGL digital twin. When a summary or resume shorthand conflicts, let the technical figures control metric definitions. Record the homogeneous pairs: the original U-Net achieved 81.19% mIoU and 0.64 seam-class IoU; the final 939-image configuration achieved 96.80% mIoU and 0.94 seam-class IoU. Explicitly prohibit the 64% -> 96.8% shorthand because it crosses metric types. Architecture, pretraining, and dataset size all changed across stages, so do not make a single-factor causal claim or controlled-ablation claim.
 
 - [ ] Enter Xbotics, HERO RoboMaster, competition, award, programming, and language facts exactly as supported. Record TOEFL 93 and the decision not to retake it.
 
@@ -601,8 +601,8 @@ class BuilderTests(unittest.TestCase):
 
     def test_tex_to_plain_accepts_only_plain_paragraph_escapes(self):
         self.assertEqual(
-            "Accuracy rose from 64% to 96.8% in R&D work.",
-            tex_to_plain(r"Accuracy rose from 64\% to 96.8\% in R\&D work."),
+            "The recorded rate was 93.60% in R&D work.",
+            tex_to_plain(r"The recorded rate was 93.60\% in R\&D work."),
         )
         with self.assertRaises(ValueError):
             tex_to_plain(r"\textbf{Unsupported markup}")
@@ -944,7 +944,7 @@ git commit -m "docs: draft computer science statement base"
 
 - [ ] Paragraph 2, 105-125 words: establish the mechanical undergraduate foundation and explain the ongoing CS degree as a way to build more capable physical systems.
 
-- [ ] Paragraphs 3 and 4, 350-390 words total: lead with the weld-seam HMI, modified-DH model, analytical kinematics, OpenGL twin, and fact-bank-approved segmentation accuracy. Connect this to CR5 calibration, workspace validation, servo execution, and real-robot integration.
+- [ ] Paragraphs 3 and 4, 350-390 words total: lead with the weld-seam HMI, modified-DH model, analytical kinematics, OpenGL twin, and fact-bank-approved homogeneous mIoU/seam-class IoU evidence. Do not use the crossed 64% -> 96.8% shorthand. Connect this to CR5 calibration, workspace validation, servo execution, and real-robot integration.
 
 - [ ] Paragraph 5, 90-120 words: use the intelligent-vehicle competition, HERO, or Xbotics as evidence of multidisciplinary engineering and verification under real constraints.
 
@@ -1281,7 +1281,7 @@ git commit -m "build: render 25 personal statement PDFs"
 
 ~~~bash
 rg -n -i \
-  'submitted paper|published paper|first author|completed.*computer science|mIoU|Target University|Student Name Here|Program Name Here|TBD|TODO|FIXME|lorem ipsum|world-class|prestigious|top-ranked' \
+  'submitted paper|published paper|first author|completed.*computer science|64\\?%.*96\.8\\?%|64 percent.*96\.8 percent|Target University|Student Name Here|Program Name Here|TBD|TODO|FIXME|lorem ipsum|world-class|prestigious|top-ranked' \
   content statements output/markdown
 ~~~
 
@@ -1289,7 +1289,7 @@ Expected: no unsupported or generic matches. A legitimate phrase must be manuall
 
 - [ ] Search for school contamination, including common abbreviations and full names. Use the validator result as the gate, not visual intuition.
 
-- [ ] Confirm the weld metric is always segmentation accuracy, the CR5 range remains 2.57%-4.74%, Hermite remains a not-submitted working paper, and the second CS degree remains ongoing with expected June 2027 completion.
+- [ ] Confirm that weld-seam HMI evidence uses homogeneous metric pairs (mIoU with mIoU and seam-class IoU with seam-class IoU) and never the crossed 64% -> 96.8% shorthand, that the CR5 range remains 2.57%-4.74%, that Hermite remains a not-submitted working paper, and that the second CS degree remains ongoing with expected June 2027 completion.
 
 - [ ] Rebuild and rerun unit, content, and PDF validation after every correction.
 
