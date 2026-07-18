@@ -1281,7 +1281,7 @@ git commit -m "build: render 25 personal statement PDFs"
 
 ~~~bash
 rg -n -i \
-  'submitted paper|published paper|first author|completed.*computer science|64\\?%.*96\.8\\?%|64 percent.*96\.8 percent|Target University|Student Name Here|Program Name Here|TBD|TODO|FIXME|lorem ipsum|world-class|prestigious|top-ranked' \
+  'submitted paper|published paper|first author|completed.*computer science|64(?:\\?%|\s+percent)\s*(?:->|→|(?:up\s+)?to|vs\.?|versus|-|–|—)\s*96\.80*(?:\\?%|\s+percent)|Target University|Student Name Here|Program Name Here|TBD|TODO|FIXME|lorem ipsum|world-class|prestigious|top-ranked' \
   content statements output/markdown
 ~~~
 
