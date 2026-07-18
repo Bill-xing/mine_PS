@@ -12,8 +12,9 @@ This matrix is the human-auditable companion to `applications_2027/config/progra
 ## Source precedence
 
 1. Current official program catalogs and official admissions or application-checklist pages outrank official marketing pages.
-2. Official university and department pages outrank `target_school` notes and all third-party sources.
-3. Conflicts are recorded in the relevant row's Notes field and are never silently resolved.
+2. Within the same current-official tier, the current catalog or program page controls program identity, curriculum, and experiential resources; the current admissions checklist or application portal controls upload requirements and word or character limits.
+3. Official university and department pages outrank `target_school` notes and all third-party sources.
+4. If current official sources conflict within a field, both sources and the conflict are recorded in the relevant row's Notes field. The row and its output remain provisional until the conflict is resolved; no source is silently chosen.
 
 ## Status legend
 
@@ -21,7 +22,14 @@ This matrix is the human-auditable companion to `applications_2027/config/progra
 - `provisional`: only a prior-cycle official source or an official announcement is available.
 - `official_announcement_only`: a provisional verification subtype for HKUST MEng in Robotics and Embodied AI until a catalog or application page is live.
 - `Not yet assessed` in Separate PS requirement or Official limit is an explicit intermediate state, not a claim that a separate statement or limit is absent.
-- `Not publicly specified` may be used only after a live official search finds no public statement requirement or limit.
+- `—` is an intermediate empty sentinel, never a claim of “not applicable.” The assigned school task must eliminate every standalone em-dash sentinel.
+- `No separate statement listed` is a terminal Separate PS requirement value. It may be used only when a current official application checklist or portal affirmatively omits a separate statement and the supporting official URL is recorded.
+- `Not publicly specified` is a terminal value meaning that official public sources were searched but do not state the relevant statement requirement or limit. It is distinct from an affirmative checklist or portal omission.
+- `Not applicable — single official announcement` is the only permitted terminal value for a missing Supporting official URL in an `official_announcement_only` case. It is allowed only when the primary official announcement URL is recorded and Notes explains that no second official source is yet published; it must not be used for ordinary unsearched rows.
+
+## Operational status gate
+
+Output status values in this skeleton are inherited seed values copied from `programs.json`. A row is not operationally `application_ready` and must not produce an unsuffixed final output until every intermediate sentinel is gone, an ISO verification date is recorded, the required primary official evidence is present, and the matrix and manifest are synchronized. If any part of this evidence gate is unmet, the output must be treated operationally as `provisional` even when the inherited seed value says `application_ready`.
 
 ## Verification matrix
 
@@ -55,6 +63,8 @@ This matrix is the human-auditable companion to `applications_2027/config/progra
 
 ## Completion rule for Tasks 4-9
 
-Each school verification task must replace every intermediate sentinel in its assigned rows, including `Not yet assessed`, `—`, and `Not yet reopened`. It must record an ISO verification date, retain the exact official URLs used, capture official evidence for the separate-statement requirement and any official limit, and select two to four durable official fit resources per program.
+Each school verification task must replace every intermediate sentinel in its assigned rows, including `Not yet assessed`, every standalone `—`, and `Not yet reopened`. Every em-dash empty sentinel must be removed or replaced; the em dash inside the named terminal value `Not applicable — single official announcement` is not an empty sentinel and is allowed only under the conditions in the Status legend. The task must record an ISO verification date, retain the exact official URLs used, capture official evidence for the separate-statement requirement and any official limit, and select two to four durable official fit resources per program.
 
-After verification, the task must synchronize the corresponding manifest fields `academic_year`, `verification_status`, `output_status`, and `official_limit` with the evidence recorded here. Any conflict among official sources must remain visible in Notes with enough detail to audit the resolution.
+The terminal Separate PS requirement value must reflect the evidence: a documented requirement and limit when present, `No separate statement listed` only for an affirmative current checklist or portal omission with its supporting URL, or `Not publicly specified` only after official public sources were searched without finding a stated requirement. A missing Supporting official URL may use `Not applicable — single official announcement` only for the constrained announcement-only case defined above.
+
+After verification, the task must synchronize the corresponding manifest fields `academic_year`, `verification_status`, `output_status`, and `official_limit` with the evidence recorded here. The row may pass the operational `application_ready` gate only after that synchronization and all other gate conditions are met. Any conflict among current official sources must remain visible in Notes, and the row and output must remain provisional until the conflict is resolved.
