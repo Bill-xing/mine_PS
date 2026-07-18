@@ -298,7 +298,7 @@
       "program": "MSc in Robotics and Intelligent Systems",
       "direction": "robotics_embodied_ai",
       "program_module": "content/programs/ntu/robotics_intelligent_systems.tex",
-      "academic_year": "2026/27",
+      "academic_year": "January 2027",
       "verification_status": "latest_official_prior_cycle",
       "output_status": "provisional",
       "official_limit": null
@@ -311,9 +311,9 @@
       "program": "MSc in Computer Control & Automation",
       "direction": "robotics_embodied_ai",
       "program_module": "content/programs/ntu/computer_control_automation.tex",
-      "academic_year": "2026/27",
-      "verification_status": "latest_official_prior_cycle",
-      "output_status": "provisional",
+      "academic_year": "August 2027",
+      "verification_status": "official_2027_intake",
+      "output_status": "application_ready",
       "official_limit": null
     },
     {
@@ -324,9 +324,9 @@
       "program": "MSc in Signal Processing and Machine Learning",
       "direction": "computer_science_ai",
       "program_module": "content/programs/ntu/signal_processing_machine_learning.tex",
-      "academic_year": "2026/27",
-      "verification_status": "latest_official_prior_cycle",
-      "output_status": "provisional",
+      "academic_year": "August 2027",
+      "verification_status": "official_2027_intake",
+      "output_status": "application_ready",
       "official_limit": null
     }
   ]
