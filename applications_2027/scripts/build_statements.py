@@ -86,6 +86,7 @@ def render_entry(program):
         "\\begin{document}\n"
         "\\thispagestyle{firstpageheader}\n"
         "\\input{\\GetBaseContentPath}\n"
+        "\\par\n"
         "\\input{\\GetUniContentPath}\n"
         "\\end{document}\n"
     )

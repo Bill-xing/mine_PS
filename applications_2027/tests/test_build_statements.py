@@ -90,6 +90,15 @@ class BuilderTests(unittest.TestCase):
         self.assertIn(r"\SetUniContentPath{content/programs/cuhk/robotics}", entry)
         self.assertIn(r"\SetProgramName{MSc in Robotics}", entry)
 
+    def test_render_entry_separates_base_and_module_with_explicit_paragraph(self):
+        entry = render_entry(self.program)
+        self.assertIn(
+            "\\input{\\GetBaseContentPath}\n"
+            "\\par\n"
+            "\\input{\\GetUniContentPath}\n",
+            entry,
+        )
+
     def test_render_entry_matches_template_and_escapes_metadata(self):
         program = dict(
             self.program,
@@ -108,6 +117,7 @@ class BuilderTests(unittest.TestCase):
             "\\begin{document}\n"
             "\\thispagestyle{firstpageheader}\n"
             "\\input{\\GetBaseContentPath}\n"
+            "\\par\n"
             "\\input{\\GetUniContentPath}\n"
             "\\end{document}\n",
             render_entry(program),
