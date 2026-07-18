@@ -5,6 +5,7 @@ from pathlib import Path
 
 
 MANIFEST_PATH = Path(__file__).resolve().parents[1] / "config" / "programs.json"
+EASIER_PS_PATH = Path(__file__).resolve().parents[1] / "easier_ps.cls"
 MANIFEST = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
 PROGRAMS = MANIFEST["programs"]
 
@@ -22,9 +23,26 @@ REQUIRED_FIELDS = {
     "official_limit",
 }
 ALLOWED_OUTPUT_STATUSES = {"application_ready", "provisional"}
+EASIER_PS_INTERFACES = {
+    "SetStudentName",
+    "SetProgramName",
+    "SetUniversityName",
+    "SetUniversityAbbr",
+    "SetBaseContentPath",
+    "SetUniContentPath",
+    "firstpageheader",
+}
 
 
 class ManifestTests(unittest.TestCase):
+    def test_easier_ps_layout_snapshot_exposes_expected_interfaces(self):
+        self.assertTrue(EASIER_PS_PATH.is_file())
+
+        class_text = EASIER_PS_PATH.read_text(encoding="utf-8")
+        for interface in EASIER_PS_INTERFACES:
+            with self.subTest(interface=interface):
+                self.assertIn(interface, class_text)
+
     def test_has_expected_applicant_metadata(self):
         self.assertEqual(
             MANIFEST["applicant"],
