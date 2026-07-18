@@ -10,9 +10,9 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
-try:
-    from scripts.build_statements import compose_plain, output_stem, tex_to_plain
-except ModuleNotFoundError:  # Direct execution from applications_2027/scripts.
+if __package__:
+    from .build_statements import compose_plain, output_stem, tex_to_plain
+else:  # Direct execution from applications_2027/scripts.
     from build_statements import compose_plain, output_stem, tex_to_plain
 
 
@@ -73,7 +73,11 @@ def placeholder_errors(text):
 
 
 def _contains_marker(text, marker):
-    pattern = rf"(?<![A-Za-z0-9]){re.escape(marker)}(?![A-Za-z0-9])"
+    marker_parts = marker.split()
+    if not marker_parts:
+        return False
+    flexible_marker = r"\s+".join(re.escape(part) for part in marker_parts)
+    pattern = rf"(?<![A-Za-z0-9]){flexible_marker}(?![A-Za-z0-9])"
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 
@@ -134,6 +138,18 @@ def limit_errors(text, official_limit):
     unit = official_limit.get("unit")
     if unit == "words":
         count = word_count(text)
+        if maximum >= 850:
+            upper_bound = min(950, maximum)
+            if 850 <= count <= upper_bound:
+                return []
+            return [
+                f"word count {count} is outside the required 850-{upper_bound} range"
+            ]
+        if 1 <= count <= maximum:
+            return []
+        if count == 0:
+            return ["word-limited statement must be nonempty"]
+        return [f"words count {count} exceeds official maximum {maximum}"]
     elif unit == "characters":
         includes_spaces = official_limit.get("includes_spaces")
         if not isinstance(includes_spaces, bool):
@@ -146,12 +162,13 @@ def limit_errors(text, official_limit):
             if includes_spaces
             else sum(not character.isspace() for character in body)
         )
+        if count == 0:
+            return ["character-limited statement must be nonempty"]
+        if count <= maximum:
+            return []
+        return [f"characters count {count} exceeds official maximum {maximum}"]
     else:
         return [f"unsupported official_limit unit: {unit!r}"]
-
-    if count <= maximum:
-        return []
-    return [f"{unit} count {count} exceeds official maximum {maximum}"]
 
 
 def output_path(program, kind, root=None):
@@ -166,6 +183,36 @@ def output_path(program, kind, root=None):
 def normalize_text(text):
     """Lowercase text and remove every non-alphanumeric character."""
     return "".join(character for character in text.lower() if character.isalnum())
+
+
+def _strip_pdf_layout_artifacts(text, program):
+    """Remove exact EasierPS header lines and isolated trailing page numbers."""
+    header_lines = {
+        "Personal Statement",
+        "Jianming Xing",
+        program["university"],
+        program["university_abbr"],
+        program["program"],
+    }
+    cleaned_pages = []
+    for page in text.split("\f"):
+        lines = page.splitlines()
+        while lines:
+            while lines and not lines[0].strip():
+                lines.pop(0)
+            if lines and lines[0].strip() in header_lines:
+                lines.pop(0)
+                continue
+            break
+
+        while lines and not lines[-1].strip():
+            lines.pop()
+        if lines and re.fullmatch(r"[0-9]+", lines[-1].strip()):
+            lines.pop()
+        while lines and not lines[-1].strip():
+            lines.pop()
+        cleaned_pages.append("\n".join(lines))
+    return "\n".join(cleaned_pages)
 
 
 def load_manifest(root=None):
@@ -337,7 +384,8 @@ def validate_program(program, root=None, require_pdfs=False):
                     )
                 )
             else:
-                if normalize_text(body) not in normalize_text(result.stdout):
+                extracted_body = _strip_pdf_layout_artifacts(result.stdout, program)
+                if normalize_text(body) not in normalize_text(extracted_body):
                     errors.append(
                         ValidationIssue(
                             program_key,

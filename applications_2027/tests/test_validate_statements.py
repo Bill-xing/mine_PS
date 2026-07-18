@@ -1,4 +1,6 @@
 import io
+import subprocess
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -62,6 +64,21 @@ class ValidatorTests(unittest.TestCase):
     def test_word_count_handles_hyphenated_terms_and_percentages(self):
         self.assertEqual(7, word_count("A real-robot policy reduced drops by 27.15%."))
 
+    def test_validator_imports_through_applications_package_from_repo_root(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "from applications_2027.scripts.validate_statements import word_count; "
+                "assert word_count('one two') == 2",
+            ],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+
     def test_placeholder_scan_rejects_template_language(self):
         errors = placeholder_errors("I am applying to Target University.")
         self.assertTrue(errors)
@@ -81,6 +98,17 @@ class ValidatorTests(unittest.TestCase):
                 own_school="cuhk",
             )
         )
+
+    def test_contamination_scan_matches_flexible_marker_whitespace(self):
+        errors = contamination_errors(
+            "Hong Kong   University\nof Science and Technology offers this course.",
+            own_school="cuhk",
+        )
+        self.assertTrue(errors)
+
+    def test_own_school_scan_matches_flexible_marker_whitespace(self):
+        module = "Chinese University\n   of Hong Kong is a strong fit."
+        self.assertFalse(own_school_errors(module, self.program))
 
     def test_canonical_scan_matches_builder_plain_prose_rules(self):
         self.assertFalse(canonical_errors(r"A 96.80\% result from R\&D."))
@@ -128,6 +156,32 @@ class ValidatorTests(unittest.TestCase):
         with_spaces = {"unit": "characters", "max": 4, "includes_spaces": True}
         self.assertFalse(limit_errors("ab cd", without_spaces))
         self.assertTrue(limit_errors("ab cd", with_spaces))
+
+    def test_loose_official_word_max_keeps_default_word_range(self):
+        official = {"unit": "words", "max": 1000}
+        self.assertTrue(limit_errors("", official))
+        self.assertFalse(limit_errors("word " * 850, official))
+        self.assertFalse(limit_errors("word " * 950, official))
+        self.assertTrue(limit_errors("word " * 999, official))
+
+    def test_intersecting_and_compressed_official_word_limits(self):
+        intersecting = {"unit": "words", "max": 900}
+        self.assertTrue(limit_errors("word " * 849, intersecting))
+        self.assertFalse(limit_errors("word " * 850, intersecting))
+        self.assertFalse(limit_errors("word " * 900, intersecting))
+        self.assertTrue(limit_errors("word " * 901, intersecting))
+
+        compressed = {"unit": "words", "max": 400}
+        self.assertTrue(limit_errors("", compressed))
+        self.assertFalse(limit_errors("word " * 400, compressed))
+        self.assertTrue(limit_errors("word " * 401, compressed))
+
+    def test_official_character_limit_requires_nonempty_body(self):
+        official = {"unit": "characters", "max": 5, "includes_spaces": True}
+        self.assertTrue(limit_errors("", official))
+        self.assertTrue(limit_errors("   ", official))
+        self.assertFalse(limit_errors("abcde", official))
+        self.assertTrue(limit_errors("abcdef", official))
 
     def test_output_path_uses_status_aware_stem(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -252,6 +306,37 @@ class ValidatorTests(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
+
+    def test_program_scan_strips_known_two_page_layout_artifacts(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base_path, module_path, _ = self.write_valid_program(root)
+            pdf_path = output_path(self.program, "pdf", root)
+            pdf_path.parent.mkdir(parents=True)
+            pdf_path.write_bytes(b"pdf")
+            body = compose_plain(base_path, module_path)
+            split_at = body.index("evidence", len(body) // 2)
+            first_page_body = body[:split_at]
+            second_page_body = body[split_at:]
+            extracted = (
+                "Personal Statement\n"
+                "Jianming Xing\n\n"
+                "The Chinese University of Hong Kong\n"
+                "MSc in Robotics\n\n"
+                f"{first_page_body}\n"
+                "1\n\n\f"
+                "Jianming Xing\n\n"
+                "CUHK\n\n"
+                f"{second_page_body}\n"
+                "2\n\f"
+            )
+            with mock.patch(
+                "scripts.validate_statements.subprocess.run",
+                return_value=mock.Mock(stdout=extracted),
+            ):
+                errors = validate_program(self.program, root=root, require_pdfs=True)
+
+        self.assertFalse(errors)
 
     def test_program_scan_rejects_pdf_without_full_canonical_body(self):
         with tempfile.TemporaryDirectory() as temp:
