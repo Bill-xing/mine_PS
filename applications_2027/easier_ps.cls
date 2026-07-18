@@ -52,7 +52,7 @@
 \pagestyle{fancy}               % Use fancy headers/footers
 \fancyhf{}                      % Clear default header/footer
 \fancyhead[L]{\@StudentName}    % Custom left header: Student Name
-\fancyhead[R]{\@UniversityName} % Custom right header: University Name
+\fancyhead[R]{\@UniversityAbbr} % Keep continuation headers compact and non-overlapping
 \fancyfoot[C]{\thepage}         % Add a page number in the footer
 \setlength{\headheight}{53pt}   % Adjust the height of the header
 \setlength{\headsep}{16pt}      % Space between the header and content

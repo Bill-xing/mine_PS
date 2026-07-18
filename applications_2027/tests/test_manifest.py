@@ -43,6 +43,12 @@ class ManifestTests(unittest.TestCase):
             with self.subTest(interface=interface):
                 self.assertIn(interface, class_text)
 
+        self.assertIn(r"\fancyhead[R]{\@UniversityAbbr}", class_text)
+        self.assertIn(
+            r"\makebox[\textwidth][r]{\@UniversityName}",
+            class_text,
+        )
+
     def test_has_expected_applicant_metadata(self):
         self.assertEqual(
             MANIFEST["applicant"],
