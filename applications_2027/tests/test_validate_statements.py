@@ -199,6 +199,20 @@ class ValidatorTests(unittest.TestCase):
     def test_pdf_normalization_removes_all_non_alphanumeric_characters(self):
         self.assertEqual("realrobot2715", normalize_text("Real-robot: 27.15%!"))
 
+    def test_pdf_normalization_decomposes_common_latin_ligatures(self):
+        ligatures = {
+            "\ufb00": "ff",
+            "\ufb01": "fi",
+            "\ufb02": "fl",
+            "\ufb03": "ffi",
+            "\ufb04": "ffl",
+            "\ufb05": "st",
+            "\ufb06": "st",
+        }
+        for glyph, letters in ligatures.items():
+            with self.subTest(glyph=glyph):
+                self.assertEqual(letters, normalize_text(glyph))
+
     def test_manifest_scan_accepts_the_exact_portfolio_distribution(self):
         self.assertFalse(manifest_errors(load_manifest()))
 

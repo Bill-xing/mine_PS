@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -181,8 +182,11 @@ def output_path(program, kind, root=None):
 
 
 def normalize_text(text):
-    """Lowercase text and remove every non-alphanumeric character."""
-    return "".join(character for character in text.lower() if character.isalnum())
+    """Compatibility-normalize, lowercase, and remove non-alphanumeric characters."""
+    normalized = unicodedata.normalize("NFKC", text)
+    return "".join(
+        character for character in normalized.lower() if character.isalnum()
+    )
 
 
 def _strip_pdf_layout_artifacts(text, program):
