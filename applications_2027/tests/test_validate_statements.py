@@ -41,6 +41,7 @@ class ValidatorTests(unittest.TestCase):
             "verification_status": "latest_official_prior_cycle",
             "output_status": "provisional",
             "official_limit": None,
+            "compressed_derivative": None,
         }
 
     def write_valid_program(self, root, program=None):
@@ -288,6 +289,141 @@ class ValidatorTests(unittest.TestCase):
             markdown_path.write_text("Almost the same body.\n", encoding="utf-8")
             errors = validate_program(self.program, root=root)
         self.assertIn("markdown_parity", {error.check for error in errors})
+
+    def test_program_scan_selects_derivative_for_limit_and_output_parity(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                key="ntu-robotics-intelligent-systems",
+                school="ntu",
+                university="Nanyang Technological University, Singapore",
+                university_abbr="NTU",
+                program="MSc in Robotics and Intelligent Systems",
+                compressed_derivative=(
+                    "content/derivatives/ntu/robotics_intelligent_systems.tex"
+                ),
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            base_path, module_path, markdown_path = self.write_valid_program(
+                root, program
+            )
+            module_path.write_text("NTU long-form fit.", encoding="utf-8")
+            derivative_path = root / program["compressed_derivative"]
+            derivative_path.parent.mkdir(parents=True)
+            derivative_path.write_text(
+                "NTU derivative paragraph one.\n\nNTU derivative paragraph two.\n",
+                encoding="utf-8",
+            )
+            markdown_path.write_text(
+                "NTU derivative paragraph one.\n\nNTU derivative paragraph two.\n",
+                encoding="utf-8",
+            )
+            long_form_characters = len(compose_plain(base_path, module_path).strip())
+
+            errors = validate_program(program, root=root)
+
+        self.assertFalse(errors)
+        self.assertGreater(
+            long_form_characters,
+            program["official_limit"]["max"],
+        )
+
+    def test_program_scan_requires_declared_derivative_source(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                compressed_derivative="content/derivatives/ntu/missing.tex",
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            self.write_valid_program(root, program)
+            errors = validate_program(program, root=root)
+
+        self.assertIn("derivative_exists", {error.check for error in errors})
+
+    def test_program_scan_rejects_noncanonical_derivative(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                compressed_derivative="content/derivatives/ntu/bad.tex",
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            _, _, markdown_path = self.write_valid_program(root, program)
+            derivative_path = root / program["compressed_derivative"]
+            derivative_path.parent.mkdir(parents=True)
+            derivative_path.write_text(
+                r"CUHK \textbf{formatted} derivative.", encoding="utf-8"
+            )
+            markdown_path.write_text("unused\n", encoding="utf-8")
+            errors = validate_program(program, root=root)
+
+        self.assertIn(
+            "derivative_canonical_prose", {error.check for error in errors}
+        )
+
+    def test_program_scan_applies_content_checks_to_derivative(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                compressed_derivative="content/derivatives/ntu/bad_content.tex",
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            _, _, markdown_path = self.write_valid_program(root, program)
+            derivative_path = root / program["compressed_derivative"]
+            derivative_path.parent.mkdir(parents=True)
+            derivative_path.write_text(
+                "Target University and HKUST are alternatives.", encoding="utf-8"
+            )
+            markdown_path.write_text(
+                "Target University and HKUST are alternatives.\n", encoding="utf-8"
+            )
+            errors = validate_program(program, root=root)
+
+        checks = {error.check for error in errors}
+        self.assertIn("derivative_placeholders", checks)
+        self.assertIn("derivative_own_school", checks)
+        self.assertIn("derivative_cross_school_contamination", checks)
+
+    def test_program_scan_keeps_default_long_form_word_gate_for_derivative(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            program = dict(
+                self.program,
+                compressed_derivative="content/derivatives/ntu/short.tex",
+                official_limit={
+                    "unit": "characters",
+                    "max": 2000,
+                    "includes_spaces": True,
+                },
+            )
+            base_path, _, markdown_path = self.write_valid_program(root, program)
+            base_path.write_text("too short", encoding="utf-8")
+            derivative_path = root / program["compressed_derivative"]
+            derivative_path.parent.mkdir(parents=True)
+            derivative_path.write_text("CUHK derivative.", encoding="utf-8")
+            markdown_path.write_text("CUHK derivative.\n", encoding="utf-8")
+            errors = validate_program(program, root=root)
+
+        self.assertIn("long_form_length", {error.check for error in errors})
 
     def test_program_scan_requires_status_aware_pdf(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -21,6 +21,7 @@ REQUIRED_FIELDS = {
     "verification_status",
     "output_status",
     "official_limit",
+    "compressed_derivative",
 }
 ALLOWED_OUTPUT_STATUSES = {"application_ready", "provisional"}
 EASIER_PS_INTERFACES = {
@@ -97,6 +98,42 @@ class ManifestTests(unittest.TestCase):
             with self.subTest(program=program.get("key")):
                 self.assertEqual(set(program), REQUIRED_FIELDS)
                 self.assertIn(program["output_status"], ALLOWED_OUTPUT_STATUSES)
+
+    def test_only_three_ntu_programs_declare_character_limited_derivatives(self):
+        expected = {
+            "ntu-robotics-intelligent-systems": (
+                "content/derivatives/ntu/robotics_intelligent_systems.tex"
+            ),
+            "ntu-computer-control-automation": (
+                "content/derivatives/ntu/computer_control_automation.tex"
+            ),
+            "ntu-signal-processing-machine-learning": (
+                "content/derivatives/ntu/signal_processing_machine_learning.tex"
+            ),
+        }
+        declared = {
+            program["key"]: program["compressed_derivative"]
+            for program in PROGRAMS
+            if program["compressed_derivative"] is not None
+        }
+
+        self.assertEqual(expected, declared)
+        for program in PROGRAMS:
+            with self.subTest(program=program["key"]):
+                derivative = program["compressed_derivative"]
+                if program["key"] in expected:
+                    self.assertIsInstance(derivative, str)
+                    self.assertTrue((MANIFEST_PATH.parent.parent / derivative).is_file())
+                    self.assertEqual(
+                        {
+                            "unit": "characters",
+                            "max": 2000,
+                            "includes_spaces": True,
+                        },
+                        program["official_limit"],
+                    )
+                else:
+                    self.assertIsNone(derivative)
 
 
 if __name__ == "__main__":

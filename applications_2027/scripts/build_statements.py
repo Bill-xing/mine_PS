@@ -72,16 +72,44 @@ def compose_plain(base_path, module_path):
     return f"{base}\n\n{module}\n"
 
 
+def compose_program_plain(program, root=None):
+    """Return the exact prose body used for one program's portal output."""
+    root = ROOT if root is None else Path(root)
+    derivative = program.get("compressed_derivative")
+    if derivative is not None:
+        derivative_path = root / derivative
+        body = tex_to_plain(derivative_path.read_text(encoding="utf-8")).strip()
+        return f"{body}\n"
+
+    base_path = root / "content" / "base" / f"{program['direction']}.tex"
+    module_path = root / program["program_module"]
+    return compose_plain(base_path, module_path)
+
+
 def render_entry(program):
-    base = f"content/base/{program['direction']}"
-    module = str(Path(program["program_module"]).with_suffix(""))
-    return (
+    common = (
         "\\documentclass{easier_ps}\n"
         f"\\SetStudentName{{{latex_escape('Jianming Xing')}}}\n"
         f"\\SetProgramName{{{latex_escape(program['program'])}}}\n"
         f"\\SetUniversityName{{{latex_escape(program['university'])}}}\n"
         f"\\SetUniversityAbbr{{{latex_escape(program['university_abbr'])}}}\n"
-        f"\\SetBaseContentPath{{{base}}}\n"
+    )
+    derivative = program.get("compressed_derivative")
+    if derivative is not None:
+        derivative_path = str(Path(derivative).with_suffix(""))
+        return (
+            common
+            + "\\begin{document}\n"
+            "\\thispagestyle{firstpageheader}\n"
+            f"\\input{{{derivative_path}}}\n"
+            "\\end{document}\n"
+        )
+
+    base = f"content/base/{program['direction']}"
+    module = str(Path(program["program_module"]).with_suffix(""))
+    return (
+        common
+        + f"\\SetBaseContentPath{{{base}}}\n"
         f"\\SetUniContentPath{{{module}}}\n"
         "\\begin{document}\n"
         "\\thispagestyle{firstpageheader}\n"
@@ -101,12 +129,9 @@ def generate_program(program):
 
     entry_path = statements_dir / f"{program['key']}.tex"
     markdown_path = markdown_dir / f"{output_stem(program)}.md"
-    base_path = ROOT / "content" / "base" / f"{program['direction']}.tex"
-    module_path = ROOT / program["program_module"]
-
     entry_path.write_text(render_entry(program), encoding="utf-8")
     markdown_path.write_text(
-        compose_plain(base_path, module_path), encoding="utf-8"
+        compose_program_plain(program), encoding="utf-8"
     )
     return entry_path, markdown_path
 

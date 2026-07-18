@@ -264,11 +264,67 @@ def manifest_errors(programs):
                 f"expected {dict(EXPECTED_SCHOOL_COUNTS)}, found {dict(school_counts)}",
             )
         )
+
+    for program in programs:
+        program_key = program.get("key", "manifest")
+        if "compressed_derivative" not in program:
+            errors.append(
+                ValidationIssue(
+                    program_key,
+                    "compressed_derivative_field",
+                    "manifest record is missing compressed_derivative",
+                )
+            )
+            continue
+        derivative = program["compressed_derivative"]
+        if derivative is not None and not isinstance(derivative, str):
+            errors.append(
+                ValidationIssue(
+                    program_key,
+                    "compressed_derivative_type",
+                    "compressed_derivative must be a string path or null",
+                )
+            )
+        elif isinstance(derivative, str):
+            errors.extend(
+                _content_issues(
+                    program_key,
+                    "compressed_derivative_path",
+                    derivative_path_errors(derivative),
+                )
+            )
+            expected_limit = {
+                "unit": "characters",
+                "max": 2000,
+                "includes_spaces": True,
+            }
+            if program.get("official_limit") != expected_limit:
+                errors.append(
+                    ValidationIssue(
+                        program_key,
+                        "compressed_derivative_limit",
+                        "compressed derivatives require the exact 2,000-character including-spaces limit",
+                    )
+                )
     return errors
 
 
 def _content_issues(program_key, check, messages):
     return [ValidationIssue(program_key, check, message) for message in messages]
+
+
+def derivative_path_errors(value):
+    """Return schema errors for a compressed-derivative source path."""
+    if not isinstance(value, str) or not value:
+        return ["compressed_derivative must be a nonempty string path"]
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts:
+        return ["compressed_derivative must be a safe relative path"]
+    if path.suffix != ".tex" or path.parts[:2] != ("content", "derivatives"):
+        return [
+            "compressed_derivative must be a .tex file below content/derivatives"
+        ]
+    return []
 
 
 def validate_program(program, root=None, require_pdfs=False):
@@ -305,8 +361,9 @@ def validate_program(program, root=None, require_pdfs=False):
         plain_text[source_name] = tex_to_plain(raw_text).strip()
 
     body = None
+    long_form_body = None
     if set(plain_text) == {"base", "module"}:
-        body = compose_plain(base_path, module_path)
+        long_form_body = compose_plain(base_path, module_path)
         errors.extend(
             _content_issues(
                 program_key,
@@ -318,7 +375,7 @@ def validate_program(program, root=None, require_pdfs=False):
             _content_issues(
                 program_key,
                 "placeholders",
-                placeholder_errors(body),
+                placeholder_errors(long_form_body),
             )
         )
         errors.extend(
@@ -332,17 +389,96 @@ def validate_program(program, root=None, require_pdfs=False):
             _content_issues(
                 program_key,
                 "cross_school_contamination",
-                contamination_errors(body, program["school"]),
+                contamination_errors(long_form_body, program["school"]),
             )
+        )
+
+        derivative = program.get("compressed_derivative")
+        long_form_check = (
+            "long_form_length"
+            if derivative is not None
+            else "word_or_character_limit"
         )
         errors.extend(
             _content_issues(
                 program_key,
-                "word_or_character_limit",
-                limit_errors(body, program.get("official_limit")),
+                long_form_check,
+                limit_errors(
+                    long_form_body,
+                    None if derivative is not None else program.get("official_limit"),
+                ),
             )
         )
 
+        if derivative is None:
+            body = long_form_body
+        elif not isinstance(derivative, str):
+            errors.append(
+                ValidationIssue(
+                    program_key,
+                    "derivative_path",
+                    "compressed_derivative must be a string path",
+                )
+            )
+        else:
+            path_errors = derivative_path_errors(derivative)
+            errors.extend(
+                _content_issues(program_key, "derivative_path", path_errors)
+            )
+            if not path_errors:
+                derivative_path = root / derivative
+                if not derivative_path.is_file():
+                    errors.append(
+                        ValidationIssue(
+                            program_key,
+                            "derivative_exists",
+                            f"missing canonical derivative: {derivative_path}",
+                        )
+                    )
+                else:
+                    raw_derivative = derivative_path.read_text(encoding="utf-8")
+                    markup_errors = canonical_errors(raw_derivative)
+                    if markup_errors:
+                        errors.extend(
+                            _content_issues(
+                                program_key,
+                                "derivative_canonical_prose",
+                                markup_errors,
+                            )
+                        )
+                    else:
+                        derivative_plain = tex_to_plain(raw_derivative).strip()
+                        body = f"{derivative_plain}\n"
+                        errors.extend(
+                            _content_issues(
+                                program_key,
+                                "derivative_placeholders",
+                                placeholder_errors(body),
+                            )
+                        )
+                        errors.extend(
+                            _content_issues(
+                                program_key,
+                                "derivative_own_school",
+                                own_school_errors(derivative_plain, program),
+                            )
+                        )
+                        errors.extend(
+                            _content_issues(
+                                program_key,
+                                "derivative_cross_school_contamination",
+                                contamination_errors(body, program["school"]),
+                            )
+                        )
+                        errors.extend(
+                            _content_issues(
+                                program_key,
+                                "word_or_character_limit",
+                                limit_errors(body, program.get("official_limit")),
+                            )
+                        )
+
+    if body is not None:
         markdown_path = output_path(program, "markdown", root)
         if not markdown_path.is_file():
             errors.append(

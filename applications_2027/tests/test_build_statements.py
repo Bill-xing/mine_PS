@@ -34,6 +34,7 @@ class BuilderTests(unittest.TestCase):
             "verification_status": "latest_official_prior_cycle",
             "output_status": "provisional",
             "official_limit": None,
+            "compressed_derivative": None,
         }
 
     def test_output_stem_marks_only_provisional_outputs(self):
@@ -98,6 +99,23 @@ class BuilderTests(unittest.TestCase):
             "\\input{\\GetUniContentPath}\n",
             entry,
         )
+
+    def test_render_entry_uses_only_declared_compressed_derivative(self):
+        derivative = dict(
+            self.program,
+            compressed_derivative=(
+                "content/derivatives/ntu/robotics_intelligent_systems.tex"
+            ),
+        )
+        entry = render_entry(derivative)
+
+        self.assertIn(
+            "\\input{content/derivatives/ntu/robotics_intelligent_systems}\n",
+            entry,
+        )
+        self.assertNotIn("content/base/robotics_embodied_ai", entry)
+        self.assertNotIn("content/programs/cuhk/robotics", entry)
+        self.assertEqual(1, entry.count("\\input{"))
 
     def test_render_entry_matches_template_and_escapes_metadata(self):
         program = dict(
@@ -185,6 +203,71 @@ class BuilderTests(unittest.TestCase):
                     / "markdown"
                     / "cuhk-robotics-provisional.md"
                 ).read_text(encoding="utf-8"),
+            )
+
+    def test_generate_program_uses_derivative_for_portal_markdown(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            derivative_program = dict(
+                self.program,
+                key="ntu-robotics-intelligent-systems",
+                school="ntu",
+                university="Nanyang Technological University, Singapore",
+                university_abbr="NTU",
+                program="MSc in Robotics and Intelligent Systems",
+                compressed_derivative=(
+                    "content/derivatives/ntu/robotics_intelligent_systems.tex"
+                ),
+            )
+            base = root / "content" / "base" / "robotics_embodied_ai.tex"
+            module = root / derivative_program["program_module"]
+            derivative = root / derivative_program["compressed_derivative"]
+            base.parent.mkdir(parents=True)
+            module.parent.mkdir(parents=True)
+            derivative.parent.mkdir(parents=True)
+            base.write_text("Long base paragraph.\n", encoding="utf-8")
+            module.write_text("Long NTU module.\n", encoding="utf-8")
+            derivative.write_text(
+                "NTU portal response one.\n\nNTU portal response two.\n",
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(builder, "ROOT", root):
+                entry_path, markdown_path = generate_program(derivative_program)
+
+            self.assertEqual(
+                "NTU portal response one.\n\nNTU portal response two.\n",
+                markdown_path.read_text(encoding="utf-8"),
+            )
+            entry = entry_path.read_text(encoding="utf-8")
+            self.assertEqual(1, entry.count("\\input{"))
+            self.assertIn(
+                r"\input{content/derivatives/ntu/robotics_intelligent_systems}",
+                entry,
+            )
+
+    def test_generate_program_without_derivative_keeps_base_module_composition(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            base = root / "content" / "base" / "robotics_embodied_ai.tex"
+            module = root / self.program["program_module"]
+            base.parent.mkdir(parents=True)
+            module.parent.mkdir(parents=True)
+            base.write_text("Canonical base.\n", encoding="utf-8")
+            module.write_text("Canonical CUHK module.\n", encoding="utf-8")
+
+            with mock.patch.object(builder, "ROOT", root):
+                entry_path, markdown_path = generate_program(self.program)
+
+            self.assertEqual(
+                "Canonical base.\n\nCanonical CUHK module.\n",
+                markdown_path.read_text(encoding="utf-8"),
+            )
+            self.assertIn(
+                "\\input{\\GetBaseContentPath}\n"
+                "\\par\n"
+                "\\input{\\GetUniContentPath}\n",
+                entry_path.read_text(encoding="utf-8"),
             )
 
     def test_compile_program_uses_exact_latexmk_contract_and_copies_pdf(self):
