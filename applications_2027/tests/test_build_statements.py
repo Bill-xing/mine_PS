@@ -69,6 +69,21 @@ class BuilderTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 tex_to_plain(text)
 
+    def test_tex_to_plain_rejects_unescaped_latex_special_characters(self):
+        unsupported = (
+            "96.8%",
+            "R&D",
+            "item #1",
+            "raw_name",
+            "$x^2$",
+            "{group}",
+            "a^2",
+            "non~breaking",
+        )
+        for text in unsupported:
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                tex_to_plain(text)
+
     def test_render_entry_selects_exact_base_and_module(self):
         entry = render_entry(self.program)
         self.assertIn(r"\SetBaseContentPath{content/base/robotics_embodied_ai}", entry)

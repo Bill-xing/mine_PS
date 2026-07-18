@@ -48,6 +48,10 @@ def tex_to_plain(text):
     while index < len(text):
         character = text[index]
         if character != "\\":
+            if character in "%&#_$^{}~":
+                raise ValueError(
+                    "Canonical prose may contain only escaped percent and ampersand signs"
+                )
             plain.append(character)
             index += 1
             continue
